@@ -1,0 +1,136 @@
+{
+  "name": "ブログ自動生成ワークフロー",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "blog-generator",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chatCompletion",
+        "model": "gpt-3.5-turbo",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "あなたは優秀なブログライターです。与えられたテーマについて、魅力的で読みやすいブログ記事を日本語で作成してください。タイトルと本文を含めて返してください。"
+            },
+            {
+              "role": "user",
+              "content": "={{ $json.body.theme }}についてブログ記事を書いてください。以下の形式で返してください：\n\nタイトル: [ここにタイトル]\n\n[ここに本文]"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 1500
+        }
+      },
+      "id": "openai",
+      "name": "OpenAI",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const aiResponse = $input.first().json.choices[0].message.content;\nconst lines = aiResponse.split('\\n');\nlet title = '';\nlet content = '';\nlet foundTitle = false;\n\nfor (const line of lines) {\n  if (line.startsWith('タイトル:')) {\n    title = line.replace('タイトル:', '').trim();\n    foundTitle = true;\n  } else if (foundTitle && line.trim() !== '') {\n    content += line + '\\n';\n  }\n}\n\nreturn {\n  title: title || 'タイトルなし',\n  content: content.trim(),\n  theme: $node[\"Webhook\"].json.body.theme\n};"
+      },
+      "id": "function",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.functionItem",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.NEXT_APP_URL }}/api/n8n-webhook",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"blogData\": {\n    \"title\": \"{{ $json.title }}\",\n    \"content\": \"{{ $json.content }}\",\n    \"theme\": \"{{ $json.theme }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "http",
+      "name": "Send to Next.js API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"ブログが正常に作成されました\",\n  \"blog\": {\n    \"title\": \"{{ $node['Parse AI Response'].json.title }}\",\n    \"theme\": \"{{ $node['Parse AI Response'].json.theme }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Send to Next.js API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Next.js API": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

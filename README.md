@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# n8n ブログ自動生成アプリ
 
-## Getting Started
+n8nワークフローを使用してAIがブログ記事を自動生成するWebアプリケーションです。
 
-First, run the development server:
+## 技術スタック
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **フロントエンド**: Next.js 14 (App Router)
+- **バックエンド**: Supabase
+- **ワークフロー**: n8n
+- **AI**: OpenAI API
+
+## セットアップ手順
+
+### 1. 環境変数の設定
+
+`.env.local`ファイルに以下の環境変数を設定してください：
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# n8n Webhook
+NEXT_PUBLIC_N8N_WEBHOOK_URL=your_n8n_webhook_url
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Supabaseのセットアップ
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. [Supabase](https://supabase.com)でプロジェクトを作成
+2. `supabase/schema.sql`のSQLをSupabase SQL Editorで実行
+3. プロジェクトURLとAnon Keyを`.env.local`に設定
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. n8nワークフローのセットアップ
 
-## Learn More
+1. n8nをインストールして起動
+2. `n8n/workflow-template.json`をインポート
+3. OpenAI APIキーを設定
+4. 環境変数`NEXT_APP_URL`をNext.jsアプリのURLに設定（例: http://localhost:3000）
+5. Webhookノードを有効化してURLを取得
+6. WebhookのURLを`.env.local`の`NEXT_PUBLIC_N8N_WEBHOOK_URL`に設定
 
-To learn more about Next.js, take a look at the following resources:
+### 4. 依存関係のインストールと起動
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# 依存関係のインストール
+npm install
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# 開発サーバーの起動
+npm run dev
+```
 
-## Deploy on Vercel
+## 使い方
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. ブラウザで`http://localhost:3000`にアクセス
+2. ブログのテーマを入力
+3. 「ブログを生成」ボタンをクリック
+4. n8nワークフローがAIを使用してブログを生成
+5. 生成されたブログが一覧に表示される
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## プロジェクト構造
+
+```
+├── app/
+│   ├── api/
+│   │   └── n8n-webhook/    # n8nからのデータを受け取るAPI
+│   ├── blog/
+│   │   └── [id]/          # ブログ詳細ページ
+│   └── page.tsx           # ホームページ
+├── components/
+│   ├── BlogForm.tsx       # ブログ作成フォーム
+│   └── BlogList.tsx       # ブログ一覧
+├── lib/
+│   └── supabase/         # Supabaseクライアント設定
+├── types/
+│   └── blog.ts           # TypeScript型定義
+├── n8n/
+│   └── workflow-template.json  # n8nワークフローテンプレート
+└── supabase/
+    └── schema.sql        # データベーススキーマ
+```
+
+## ワークフローの流れ
+
+1. ユーザーがフロントエンドでテーマを入力
+2. フロントエンドがn8n Webhookを呼び出し
+3. n8nがOpenAI APIを使用してブログを生成
+4. n8nがNext.js APIにブログデータを送信
+5. Next.js APIがSupabaseにブログを保存
+6. フロントエンドが更新されて新しいブログを表示
+
+## 注意事項
+
+- OpenAI APIの使用には料金が発生します
+- Supabaseの無料プランには制限があります
+- n8nは自己ホスティングまたはクラウドサービスで利用可能です
