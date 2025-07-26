@@ -1,19 +1,57 @@
-# n8n ブログ自動生成アプリ
+# AI Blog Generator with n8n Integration
 
-n8nワークフローを使用してAIがブログ記事を自動生成するWebアプリケーションです。
+AIを活用してブログ記事を自動生成するWebアプリケーションです。n8nワークフローと連携し、テーマを入力するだけで高品質なブログ記事を生成します。
 
-## 技術スタック
+## 🚀 デモ
 
-- **フロントエンド**: Next.js 14 (App Router)
-- **バックエンド**: Supabase
-- **ワークフロー**: n8n
+- **アプリケーション**: https://n8n-hostinger-create-blog.vercel.app
+- **n8n Webhook**: https://n8n.srv927568.hstgr.cloud/webhook-test/generate-blog
+
+## 🛠 技術スタック
+
+- **フロントエンド**: Next.js 15 (App Router)
+- **スタイリング**: Tailwind CSS
+- **データベース**: Supabase (PostgreSQL)
+- **ワークフロー**: n8n (Hostinger)
 - **AI**: OpenAI API
+- **ホスティング**: Vercel
 
-## セットアップ手順
+## ✨ 機能
 
-### 1. 環境変数の設定
+- 🤖 AIによる自動ブログ生成
+- 📝 Markdown形式でのコンテンツ表示
+- 🎨 ダークモード対応のモダンなUI
+- 📱 レスポンシブデザイン
+- 🔄 リアルタイムでのブログ更新
+- 🗑️ ブログの編集・削除機能
 
-`.env.local`ファイルに以下の環境変数を設定してください：
+## 📋 必要な環境
+
+- Node.js 18.0以上
+- npm または yarn
+- Supabaseアカウント
+- n8nアカウント（またはセルフホスティング）
+- OpenAI APIキー
+- Vercelアカウント（デプロイ用）
+
+## 🔧 セットアップ
+
+### 1. リポジトリのクローン
+
+```bash
+git clone https://github.com/kazu5150/n8n-Hostinger-create-blog.git
+cd n8n-Hostinger-create-blog
+```
+
+### 2. 依存関係のインストール
+
+```bash
+npm install
+```
+
+### 3. 環境変数の設定
+
+`.env.local`ファイルを作成し、以下の環境変数を設定します：
 
 ```env
 # Supabase
@@ -24,72 +62,133 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 NEXT_PUBLIC_N8N_WEBHOOK_URL=your_n8n_webhook_url
 ```
 
-### 2. Supabaseのセットアップ
+### 4. Supabaseのセットアップ
 
 1. [Supabase](https://supabase.com)でプロジェクトを作成
-2. `supabase/schema.sql`のSQLをSupabase SQL Editorで実行
-3. プロジェクトURLとAnon Keyを`.env.local`に設定
+2. SQL Editorで以下のSQLを実行：
 
-### 3. n8nワークフローのセットアップ
+```sql
+-- supabase/schema.sql の内容を実行
+```
 
-1. n8nをインストールして起動
-2. `n8n/workflow-template.json`をインポート
-3. OpenAI APIキーを設定
-4. 環境変数`NEXT_APP_URL`をNext.jsアプリのURLに設定（例: http://localhost:3000）
-5. Webhookノードを有効化してURLを取得
-6. WebhookのURLを`.env.local`の`NEXT_PUBLIC_N8N_WEBHOOK_URL`に設定
+詳細は[SUPABASE_SETUP.md](./SUPABASE_SETUP.md)を参照してください。
 
-### 4. 依存関係のインストールと起動
+### 5. n8nワークフローのセットアップ
+
+1. n8nで新しいワークフローを作成
+2. 以下のノードを設定：
+   - **Webhook**: テーマを受け取る
+   - **OpenAI**: ブログ記事を生成
+   - **Code**: データを整形
+   - **HTTP Request**: Next.jsアプリに送信
+
+詳細は[n8n-setup-guide.md](./n8n-setup-guide.md)を参照してください。
+
+### 6. 開発サーバーの起動
 
 ```bash
-# 依存関係のインストール
-npm install
-
-# 開発サーバーの起動
 npm run dev
 ```
 
-## 使い方
+http://localhost:3000 でアプリケーションが起動します。
 
-1. ブラウザで`http://localhost:3000`にアクセス
-2. ブログのテーマを入力
+## 🌐 Vercelへのデプロイ
+
+1. [Vercel](https://vercel.com)でプロジェクトを作成
+2. GitHubリポジトリを接続
+3. 環境変数を設定
+4. デプロイ
+
+詳細な手順は[デプロイガイド](#デプロイ)を参照してください。
+
+## 🔌 API エンドポイント
+
+### ブログ作成（n8n webhook）
+```bash
+POST /api/n8n-webhook
+Content-Type: application/json
+
+{
+  "title": "ブログタイトル",
+  "content": "ブログ本文",
+  "theme": "テーマ"
+}
+```
+
+### ブログ一覧取得
+```bash
+GET /api/blogs
+```
+
+### ブログ詳細取得
+```bash
+GET /api/blogs/[id]
+```
+
+### ブログ更新
+```bash
+PUT /api/blogs/[id]
+```
+
+### ブログ削除
+```bash
+DELETE /api/blogs/[id]
+```
+
+## 📝 使用方法
+
+### Webインターフェースから
+
+1. アプリケーションにアクセス
+2. テーマを入力
 3. 「ブログを生成」ボタンをクリック
-4. n8nワークフローがAIを使用してブログを生成
-5. 生成されたブログが一覧に表示される
+4. AIが自動的にブログ記事を生成
 
-## プロジェクト構造
+### curlコマンドから
+
+```bash
+curl -X POST https://n8n.srv927568.hstgr.cloud/webhook-test/generate-blog \
+  -H "Content-Type: application/json" \
+  -d '{
+    "theme": "Next.js 15の新機能について"
+  }'
+```
+
+## 🗂 プロジェクト構造
 
 ```
-├── app/
-│   ├── api/
-│   │   └── n8n-webhook/    # n8nからのデータを受け取るAPI
-│   ├── blog/
-│   │   └── [id]/          # ブログ詳細ページ
+├── app/                    # Next.js App Router
+│   ├── api/               # APIルート
+│   ├── blog/              # ブログ関連ページ
 │   └── page.tsx           # ホームページ
-├── components/
-│   ├── BlogForm.tsx       # ブログ作成フォーム
-│   └── BlogList.tsx       # ブログ一覧
-├── lib/
-│   └── supabase/         # Supabaseクライアント設定
-├── types/
-│   └── blog.ts           # TypeScript型定義
-├── n8n/
-│   └── workflow-template.json  # n8nワークフローテンプレート
-└── supabase/
-    └── schema.sql        # データベーススキーマ
+├── components/            # Reactコンポーネント
+├── lib/                   # ユーティリティ
+│   └── supabase/         # Supabaseクライアント
+├── supabase/             # データベーススキーマ
+├── n8n/                  # n8nワークフロー設定
+└── types/                # TypeScript型定義
 ```
 
-## ワークフローの流れ
+## 🤝 コントリビューション
 
-1. ユーザーがフロントエンドでテーマを入力
-2. フロントエンドがn8n Webhookを呼び出し
-3. n8nがOpenAI APIを使用してブログを生成
-4. n8nがNext.js APIにブログデータを送信
-5. Next.js APIがSupabaseにブログを保存
-6. フロントエンドが更新されて新しいブログを表示
+1. このリポジトリをフォーク
+2. 新しいブランチを作成 (`git checkout -b feature/amazing-feature`)
+3. 変更をコミット (`git commit -m 'Add some amazing feature'`)
+4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
+5. プルリクエストを作成
 
-## 注意事項
+## 📄 ライセンス
 
-- OpenAI APIの使用には料金が発生します
-- Supabaseの無料プランには制限があります
-- n8nは自己ホスティングまたはクラウドサービスで利用可能です
+このプロジェクトはMITライセンスの下で公開されています。
+
+## 🙏 謝辞
+
+- [Next.js](https://nextjs.org/)
+- [Supabase](https://supabase.com/)
+- [n8n](https://n8n.io/)
+- [OpenAI](https://openai.com/)
+- [Vercel](https://vercel.com/)
+
+## 📞 サポート
+
+問題や質問がある場合は、[Issues](https://github.com/kazu5150/n8n-Hostinger-create-blog/issues)を作成してください。
