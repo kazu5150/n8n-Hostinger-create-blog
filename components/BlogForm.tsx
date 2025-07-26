@@ -46,7 +46,7 @@ export default function BlogForm() {
         try {
           const result = JSON.parse(responseText)
           console.log('Blog created:', result)
-        } catch (jsonError) {
+        } catch {
           console.log('Non-JSON response from n8n:', responseText)
         }
       } else {
