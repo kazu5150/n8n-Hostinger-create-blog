@@ -2,13 +2,14 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import BlogEditForm from '@/components/BlogEditForm'
 
-export default async function EditBlogPage({ params }: { params: { id: string } }) {
+export default async function EditBlogPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
   
   const { data: blog, error } = await supabase
     .from('blogs')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (error || !blog) {
