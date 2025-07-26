@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
         content,
         theme,
         status: 'published',
+        user_id: null,  // 匿名ユーザーとして保存
       })
       .select()
       .single()

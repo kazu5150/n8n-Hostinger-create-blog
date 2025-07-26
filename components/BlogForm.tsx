@@ -19,8 +19,14 @@ export default function BlogForm() {
     setMessage(null)
 
     try {
+      // 環境変数のチェック
+      const webhookUrl = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL
+      if (!webhookUrl) {
+        throw new Error('N8N webhook URLが設定されていません。.env.localファイルにNEXT_PUBLIC_N8N_WEBHOOK_URLを設定してください。')
+      }
+
       // n8n webhookを呼び出し
-      const response = await fetch(process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL!, {
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,7 +62,19 @@ export default function BlogForm() {
       }, 2000)
     } catch (error) {
       console.error('Error:', error)
-      setMessage({ type: 'error', text: 'ブログの作成中にエラーが発生しました' })
+      let errorMessage = 'ブログの作成中にエラーが発生しました'
+      
+      if (error instanceof Error) {
+        if (error.message.includes('N8N webhook URL')) {
+          errorMessage = error.message
+        } else if (error.message === 'Failed to fetch') {
+          errorMessage = 'N8Nサーバーに接続できません。N8Nが起動していることを確認し、webhook URLが正しいことを確認してください。'
+        } else {
+          errorMessage = `エラー: ${error.message}`
+        }
+      }
+      
+      setMessage({ type: 'error', text: errorMessage })
     } finally {
       setIsLoading(false)
     }
